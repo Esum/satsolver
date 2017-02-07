@@ -48,7 +48,6 @@ struct
 
     let dpll choice form =
         let rec dpll form env i =
-            Printf.printf "%d " i; flush_all ();
             match consistent_literals form with
                 | true, env' -> true, Env.union env env'
                 | false, env when Env.is_empty env -> false, Env.empty
@@ -135,10 +134,11 @@ let _ =
                         clauses := int_of_string (Str.matched_group 5 line);
                         form := []::(!form) end
         done;
-        Printf.printf "Reading %d clauses...\n" (!clauses); flush_all ();
+        Printf.eprintf "Reading %d clauses...\n" (!clauses); flush_all ();
         let i = ref 0 in
         while !i < (!clauses) do
-            if (!i) mod (1+(!clauses)/10) = 0 then Printf.printf "Reading clause %d/%d...\n" (!i+1) (!clauses); flush_all ();
+            if (!i) mod (1+(!clauses)/10) = 0 then
+            Printf.eprintf "Reading clause %d/%d...\n" (!i+1) (!clauses); flush_all ();
             let line = input_line channel in
             let len = String.length line in
             let j = ref 0 in
@@ -164,7 +164,7 @@ let _ =
         | _ -> stdin in
     let form = parse channel in
     close_in channel;
-    print_string "Solving...\n"; flush_all ();
+    Printf.eprint "Solving...\n"; flush_all ();
     match DPLL.dpll choice_maxo form with
         | false, _ -> print_string "false\n"
         | true, env ->
