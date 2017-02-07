@@ -164,7 +164,7 @@ let _ =
         | _ -> stdin in
     let form = parse channel in
     close_in channel;
-    Printf.eprint "Solving...\n"; flush_all ();
+    Printf.eprintf "Solving...\n"; flush_all ();
     match DPLL.dpll choice_maxo form with
         | false, _ -> print_string "false\n"
         | true, env ->
