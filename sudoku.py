@@ -44,6 +44,10 @@ def case(i, j, k):
 def value(i, j, assignment):
     return [k for k in range(1, 10) if assignment[case(i, j, k)]][0]
 
+def tttt(i):
+    i -= 1
+    return (i//81, i//9%9, i%9+1)
+
 
 def sudoku_sat():
     res = []
@@ -58,24 +62,23 @@ def sudoku_sat():
     for k in range(1, 10):
         for i in range(9):
             for j1, j2 in product(range(9), repeat=2):
-                if j1 == j2:
+                if j1 >= j2:
                     continue
                 res.append({-case(i, j1, k), -case(i, j2, k)})
     # Two numbers in the same row cannot be equal:
     for k in range(1, 10):
         for j in range(9):
             for i1, i2 in product(range(9), repeat=2):
-                if i1 == i2:
+                if i1 >= i2:
                     continue
                 res.append({-case(i1, j, k), -case(i2, j, k)})
     # Two numbers in the same subgrid cannot be equal:
     for k in range(1, 10):
         for subsquare in range(9):
             subsq_i, subsq_j = divmod(subsquare, 3)
-            for (i1, j1), (i2, j2) in product(zip(range(3*subsq_i, 3*subsq_i+3), range(3*subsq_j, 3*subsq_j+3)), repeat=2):
-                if i1 == i2:
-                    if j1 == j2:
-                        continue
+            for (i1, j1), (i2, j2) in product(product(range(3*subsq_i, 3*subsq_i+3), range(3*subsq_j, 3*subsq_j+3)), repeat=2):
+                if i1 >= i2 and j1 >= j2:
+                    continue
                 res.append({-case(i1, j1, k), -case(i2, j2, k)})
     return res
 
@@ -115,7 +118,11 @@ if __name__ == '__main__':
         for l in range(1, 10):
             assignment[case(i, j, l)] = False
         assignment[case(i, j, k)] = True
-    dimacs_of_form(partial_eval(sudoku_sat(), assignment))
+    form = partial_eval(sudoku_sat(), assignment)
+    for c in form:
+        if any(case(7, 0, k) in c or -case(7, 0, k) in c for k in range(1, 10)) and len(c)==1:
+            print(tttt(abs(next(iter(c)))))
+    dimacs_of_form(form)
     os.system("./satsolver sudoku.cnf > sudoku.res")
     with open("sudoku.res", 'r') as file:
         res = file.readlines()
@@ -131,3 +138,4 @@ if __name__ == '__main__':
          for j in range(9):
              print(value(j, i, assignment), end=" ")
          print()
+
