@@ -111,7 +111,7 @@ if __name__ == '__main__':
             line = [int(i) for i in line]
             assignment.append({case(*tuple(line))})
     dimacs_of_form(assignment + sudoku_sat(), "sudoku.cnf")
-    os.system("./satsolver sudoku.cnf > sudokures.txt")
+    os.system("./satsolver sudoku.cnf > sudokures.txt 2>/dev/null")
     assignment = {}
     with open("sudokures.txt", 'r') as file:
         res = file.readlines()
