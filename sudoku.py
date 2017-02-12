@@ -4,7 +4,8 @@ import sys
 import os
 from itertools import product
 
-help = """Usage : ./sudoku.py input
+
+help = """Usage: ./sudoku.py input
 
 Positions i and j are defined as the following:
 
@@ -30,10 +31,12 @@ j
 8 | | | | | | | | | |
   +-+-+-+-+-+-+-+-+-+
 
-Input must be formatted as :
-"(i, j, k)(i, j, k)..."
+input must be a file with the following format:
+i, j: k
+i, j: k
+...
 where i, j and k are integers such that 0 <= i, j <= 8 and 1 <= k <= 9, meaning that the square at position i, j is filled with k.
-All spaces are ignored.
+All spaces are ignored, lines starting with - are comments.
 """
 
 
@@ -43,11 +46,6 @@ def case(i, j, k):
 
 def value(i, j, assignment):
     return [k for k in range(1, 10) if assignment[case(i, j, k)]][0]
-
-def tttt(i):
-    i -= 1
-    return (i//81, i//9%9, i%9+1)
-
 
 def sudoku_sat():
     res = []
@@ -82,49 +80,40 @@ def sudoku_sat():
                 res.append({-case(i1, j1, k), -case(i2, j2, k)})
     return res
 
-
-def partial_eval(form, assignment):
-    return [{l for l in c if not abs(l) in assignment} for c in form if not any(assignment[abs(l)] == (True if l > 0 else False) for l in c if abs(l) in assignment)]
-
-
-def dimacs_of_form(form, file="sudoku.cnf"):
+def dimacs_of_form(form, filename):
+    """Write the formula form in DIMACS format in filename"""
     m = max(max(abs(l) for l in c) for c in form)
     l = len(form)
-    with open("sudoku.cnf", 'w') as file:
+    with open(filename, 'w') as file:
         file.write("p cnf "+str(m)+" "+str(l)+"\n")
         for c in form:
             for l in c:
                 file.write(str(l)+" ")
             file.write("0\n")
 
+
 if __name__ == '__main__':
     if len(sys.argv) == 1:
         print(help)
         exit(1)
-    inp = ''.join(sys.argv[1:])
-    inp = inp.replace(' ', '')
-    inp = inp.replace('\n', '')
-    inp = inp.replace('\t', '')
-    inp = inp.split(')(')
-    inp[0] = inp[0][1:]
-    inp[-1] = inp[-1][:-1]
-    for k in range(len(inp)):
-        inp[k] = inp[k].split(',')
+    assignment = []
+    with open(sys.argv[1]) as input_file:
+        for line in input_file.readlines():
+            if not line:
+                continue
+            if line[0] == '-':
+                continue
+            line = line.replace(' ', '')
+            line = line.replace('\n', '')
+            line = line.replace('\t', '')
+            line = line.split(':')
+            line[:1] = line[0].split(',')
+            line = [int(i) for i in line]
+            assignment.append({case(*tuple(line))})
+    dimacs_of_form(assignment + sudoku_sat(), "sudoku.cnf")
+    os.system("./satsolver sudoku.cnf > sudokures.txt")
     assignment = {}
-    for t in inp:
-        i = int(t[0])
-        j = int(t[1])
-        k = int(t[2])
-        for l in range(1, 10):
-            assignment[case(i, j, l)] = False
-        assignment[case(i, j, k)] = True
-    form = partial_eval(sudoku_sat(), assignment)
-    for c in form:
-        if any(case(7, 0, k) in c or -case(7, 0, k) in c for k in range(1, 10)) and len(c)==1:
-            print(tttt(abs(next(iter(c)))))
-    dimacs_of_form(form)
-    os.system("./satsolver sudoku.cnf > sudoku.res")
-    with open("sudoku.res", 'r') as file:
+    with open("sudokures.txt", 'r') as file:
         res = file.readlines()
         if len(res) == 1:
             print("Unsolvable.")
@@ -138,4 +127,3 @@ if __name__ == '__main__':
          for j in range(9):
              print(value(j, i, assignment), end=" ")
          print()
-
