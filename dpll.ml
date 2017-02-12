@@ -7,6 +7,7 @@ let rec evaluation form env = Cnf.for_all (Clause.exists (fun l -> try Env.assoc
 module DPLL =
 struct
 
+    (* returns true and an environment if [form] is a set of consistent literals *)
     let consistent_literals form =
         let contradicts s i = IntSet.mem (-i) s in
         match Cnf.for_all (Clause.check_length 1) form with
@@ -17,6 +18,7 @@ struct
                 | true -> false, Env.empty
                 | false -> true, Env.extend Env.empty s
 
+    (* returns a new formula and environment obtained by doing unit propagations in [form] *)
     let unit_propagation env form =
         let rec unit_propagation form env =
             let units = Cnf.filter_map (fun c -> match Clause.check_length 1 c with true -> Some (Clause.choose c) | false -> None) in
@@ -27,6 +29,7 @@ struct
                     unit_propagation (Cnf.partial_evaluation form (Env.funct new_env)) new_env in
         unit_propagation form env
 
+    (* returns a new formula and environment obtained by doing pure literals assignment in [form] *)
     let pure_literal_assign env form =
         let rec pure_literal_assign form env =
             let impures = ref IntSet.empty in
