@@ -79,9 +79,9 @@ def picross_sat(r, c):
     for i in range(rows):
         for j in range(columns):
             for k in range(len(r[i])):
-                res.append({-square(i, j)} | {block('r', i, k, l) for l in range(j-r[i][k], j+1) if 0 <= l < columns-r[i][k]})
+                res.append({-square(i, j)} | {block('r', i, k, l) for l in range(j-r[i][k]+1, j+1) if 0 <= l <= columns-r[i][k]})
             for k in range(len(c[j])):
-                res.append({-square(i, j)} | {block('c', j, k, l) for l in range(i-c[j][k], i+1) if 0 <= l < rows-c[j][k]})
+                res.append({-square(i, j)} | {block('c', j, k, l) for l in range(i-c[j][k]+1, i+1) if 0 <= l <= rows-c[j][k]})
     # Every block starts at only one position
     for i in range(rows):
         for j in range(len(r[i])):
