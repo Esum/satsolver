@@ -168,11 +168,12 @@ let _ =
     let form = parse channel in
     close_in channel;
     Printf.eprintf "Solving...\n"; flush_all ();
-    match DPLL.dpll choice_maxo form with
+    match DPLL.dpll choice_maxo form with (* change the choice fuunction here: choice_basic, choice_maxo *)
         | false, _ -> print_string "false\n"
         | true, env ->
             print_string "true: ";
             print_env env; print_string "\n";
+            (* evaluate the formula to check the result *)
             match evaluation form env with
             | true -> print_string "OK.\n"
-            | _ -> print_string "Something is wrong...\n"
+            | _ -> print_string "Something is wrong...\n" (* can't verify the result *)
